@@ -9,24 +9,37 @@
 Shared *shared;
 Window *window;
 AppConfig *config;
+bool running = true;
 
+void *exitListener(void *arg)
+{
+    while (running)
+    {
+        char c = getchar();
+        if(c == 'x')
+            running = false;
+    }
+    pthread_exit(NULL);
+}
 void *ballFunction(void *arg)
 {
     int id = (int)arg;
-    while (true)
+    while (running)
     {
         usleep(config->speed);
         shared->balls[id]->updateBall();
     }
+    pthread_exit(NULL);
 }
 
 void *updateWindowFct(void *arg)
 {
-    while (true)
+    while (running)
     {
         usleep(50000);
         window->updateWindow(shared);
     }
+    pthread_exit(NULL);
 }
 int main(int argc, char *argv[])
 {
@@ -41,16 +54,22 @@ int main(int argc, char *argv[])
     config->speed = argc >= 4 ? atoi(argv[3]) : 50000;
     //
     std::vector<pthread_t *> threads;
+    //create control threads
     threads.push_back(new pthread_t());
     pthread_create(threads[0], NULL, updateWindowFct, NULL);
+    threads.push_back(new pthread_t());
+    pthread_create(threads[1], NULL, exitListener, NULL);
+    //create ball threads
     for (int i = 0; i < config->balls; i++)
     {
         shared->AddBall();
         threads.push_back(new pthread_t());
-        pthread_create(threads[i + 1], NULL, ballFunction, (void *)i);
+        pthread_create(threads[i + 2], NULL, ballFunction, (void *)i);
         sleep(config->delay);
     }
-    getchar();
-    pthread_exit(NULL);
+    while(running);
+    sleep(1);
     delete window;
+    return 0;
+    
 }
