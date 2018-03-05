@@ -6,6 +6,8 @@ Ball::Ball(int id)
     changeDirection();
     this->currentX = 8;
     this->currentY = 8;
+    this->lastX = this->currentX;
+    this->lastY = this->currentY;
 }
 
 Ball::~Ball()
