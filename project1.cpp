@@ -23,11 +23,13 @@ void exitListener()
 void ballFunction(int arg)
 {
     int id = arg;
-    while (running)
+    while (running && shared->balls[id]->bounceCounter < 5)
     {
         usleep(config->speed);
         shared->balls[id]->updateBall();
     }
+    shared->balls[id]->currentX = -1;
+    shared->balls[id]->currentY = -1;
 }
 
 void updateWindowFct()

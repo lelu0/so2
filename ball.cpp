@@ -6,8 +6,9 @@ Ball::Ball(int id)
     changeDirection();
     this->currentX = 8;
     this->currentY = 8;
-    this->lastX = this->currentX;
-    this->lastY = this->currentY;
+    this->lastX = 0;
+    this->lastY = 0;
+    this->bounceCounter = 0;
 }
 
 Ball::~Ball()
@@ -30,8 +31,7 @@ bool Ball::cordsValid(int y, int x)
 
 void Ball::updateBall()
 {
-    if (!cordsValid(currentY, currentX))
-        changeDirection();
+    int prevDirection = direction;
     int tmpX = currentX;
     int tmpY = currentY;
     while (true)
@@ -73,11 +73,13 @@ void Ball::updateBall()
             changeDirection();
             tmpX = currentX;
             tmpY = currentY;
-        }
+        }        
             
     }
     lastX = currentX;
     lastY = currentY;
     currentX = tmpX;
     currentY = tmpY;
+    if(prevDirection != direction)
+        bounceCounter++;
 }

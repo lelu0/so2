@@ -10,6 +10,7 @@ class Ball{
         Ball(int id);
         ~Ball();
         int id;
+        int bounceCounter;
         int currentX,currentY;
         int lastX, lastY;     
         bool toUpdate();
