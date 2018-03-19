@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <pthread.h>
+#include <thread>
 #include <unistd.h>
 Shared *shared;
 Window *window;
 AppConfig *config;
 bool running = true;
 
-void *exitListener(void *arg)
+void exitListener()
 {
     while (running)
     {
@@ -19,27 +19,25 @@ void *exitListener(void *arg)
         if(c == 'x')
             running = false;
     }
-    pthread_exit(NULL);
 }
-void *ballFunction(void *arg)
+void ballFunction(int arg)
 {
-    int id = (int)arg;
+    int id = arg;
     while (running)
     {
         usleep(config->speed);
         shared->balls[id]->updateBall();
     }
-    pthread_exit(NULL);
 }
 
-void *updateWindowFct(void *arg)
+void updateWindowFct()
 {
     while (running)
     {
         usleep(50000);
         window->updateWindow(shared);
     }
-    pthread_exit(NULL);
+    delete window;
 }
 int main(int argc, char *argv[])
 {
@@ -53,23 +51,27 @@ int main(int argc, char *argv[])
     config->delay = argc >= 3 ? atoi(argv[2]) : 5;
     config->speed = argc >= 4 ? atoi(argv[3]) : 50000;
     //
-    std::vector<pthread_t *> threads;
+    std::vector<std::thread> threads;
     //create control threads
-    threads.push_back(new pthread_t());
-    pthread_create(threads[0], NULL, updateWindowFct, NULL);
-    threads.push_back(new pthread_t());
-    pthread_create(threads[1], NULL, exitListener, NULL);
+    std::thread windowThread(updateWindowFct);    
+    std::thread exitThread(exitListener);    
     //create ball threads
     for (int i = 0; i < config->balls; i++)
     {
         shared->AddBall();
-        threads.push_back(new pthread_t());
-        pthread_create(threads[i + 2], NULL, ballFunction, (void *)i);
+        threads.push_back(std::thread(ballFunction,i));
         sleep(config->delay);
+        if(!running)
+            break;
     }
-    while(running);
-    sleep(1);
-    delete window;
+    windowThread.join();
+    exitThread.join();
+    for (int i = 2; i < config->balls+2; i++)
+    {
+        threads[i].join();
+    }
+    delete shared;
+    
     return 0;
     
 }

@@ -8,8 +8,6 @@ Window::Window()
 }
 Window::~Window()
 {
-    clear();
-    refresh();
     endwin();
 }
 
